@@ -172,52 +172,8 @@ function prompt_addDepartment() {
     });
 }
 
-function queryAllDepartments() {
-  return new Promise(function (resolve, reject) {
-    const sql = `SELECT department_name AS "Dept_Name" FROM departments`;
-    db.query(sql, function (err, rows) {
-      if (err) {
-        return reject(err);
-      }
-      resolve(rows);
-    });
-  });
-}
-
-function createNewRole(input_data) {
-  return new Promise(function (resolve, reject) {
-    const sql = `INSERT INTO roles (job_title, department_id, salary) VALUES (?, ?, ?)`;
-    const params = [input_data.Role, 1, input_data.Salary];
-    db.query(sql, params, function (err, rows) {
-      if (err) {
-        return reject(err);
-      }
-      resolve(rows);
-    });
-  });
-}
-
-async function newRolePrompt(Dept_List) {
-  let input_data = await inquirer.prompt([
-    {
-      type: "input",
-      message: "\nWhat is the name of the new role you wish to add?\n",
-      name: "Role",
-    },
-    {
-      type: "input",
-      message: "\nWhat is the salary for the new role?\n",
-      name: "Salary",
-    },
-    {
-      type: "list",
-      message: "\nSelect which department is associated with the new role.\n",
-      name: "Dept_Options",
-      choices: Dept_List.map((dept) => dept.Dept_Name),
-    },
-  ]);
-  return input_data;
-}
+const { queryAllDepartments, createNewRole } = require("./queries");
+const { newRolePrompt } = require("./prompts");
 
 async function prompt_addRole() {
   // get all existing departments
