@@ -22,5 +22,6 @@ CREATE TABLE employees (
   employee_lastname varchar(30) NOT NULL,
   role_id INT,
   FOREIGN KEY (role_id) REFERENCES roles(role_id),
-  manager varchar(30)
+  manager_id INT,
+  FOREIGN KEY (manager_id) REFERENCES employees(employee_id)
 );
