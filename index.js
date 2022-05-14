@@ -19,7 +19,6 @@ var mainMenu_option_Array = ["View All Departments", "View All Roles", "View All
 
 // Employee List Array (for selecting manager)
 var Employee_List = [];
-var Dept_List = [];
 
 // Establishing MYSQL database connection
 const db = mysql.createConnection(
@@ -71,7 +70,9 @@ function optionHandler(option) {
             break;
         //Add an Role
         case mainMenu_option_Array[4]:
+
             prompt_addRole();
+
             break;
         //Add an Employee
         case mainMenu_option_Array[5]:
@@ -163,10 +164,21 @@ function prompt_addDepartment() {
 
 function prompt_addRole() {
     const sql = `SELECT department_name AS "Dept_Name" FROM departments`;
+    console.log("Before DB Query inside addRole");
 
-    db.query(sql, (err, rows) => {
-        let Dept_List = [];
+    let answer = [];
+    let Dept_List = [];
+
+    db.execute(sql, (err, rows) => {
+        if (err) {
+            console.log(err);
+        }
+        console.log("rows is: ", rows);
         rows.forEach((object) => Dept_List.push(object.Dept_Name));
+    });
+
+    // console.table(JSON.stringify(Dept_List));
+    console.log("Dept list outside db: ", Dept_List);
 
     inquirer
     .prompt([
@@ -184,7 +196,7 @@ function prompt_addRole() {
             type: 'list',
             message: '\nSelect which department is associated with the new role.\n',
             name: 'Dept_Options',
-            choices: Dept_List,
+            choices: ["none", "none x2"],
         }
     ])
     .then((input_data) => {
@@ -200,7 +212,7 @@ function prompt_addRole() {
             prompt_MainMenu();    
         });  
     });
-});  
-}
+};  
+
 
 prompt_MainMenu();
