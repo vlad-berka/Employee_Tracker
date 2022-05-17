@@ -53,6 +53,7 @@ function prompt_MainMenu() {
         name: "Menu_Options",
         choices: mainMenu_option_Array,
         default: mainMenu_option_Array[0],
+        pageSize: 10,
       },
     ])
     .then((input_data) => {
@@ -89,7 +90,7 @@ function optionHandler(option) {
       break;
     //Update an Employee Role
     case mainMenu_option_Array[6]:
-      getDepartment_ID();
+      prompt_updateRole()
       break;
     //Quit
     case mainMenu_option_Array[7]:
@@ -212,7 +213,6 @@ function getRole_ID(title_string) {
         id_array.push(object.ID);
         title_array.push(object.Title);
       });
-
       resolve(id_array[title_array.indexOf(title_string)]);
     });
   });
@@ -225,6 +225,22 @@ function createNewRole(input_data) {
       input_data.Role,
       input_data.Dept_Options,
       input_data.Salary,
+    ];
+    db.query(sql, params, function (err, rows) {
+      if (err) {
+        return reject(err);
+      }
+      resolve(rows);
+    });
+  });
+}
+
+function updateRole(employee_id, role_id) {
+  return new Promise(function (resolve, reject) {
+    const sql = `UPDATE employees SET role_id = ? WHERE employee_id = ?`;
+    const params = [
+      role_id,
+      employee_id,
     ];
     db.query(sql, params, function (err, rows) {
       if (err) {
@@ -315,6 +331,48 @@ async function prompt_addDepartment() {
     });
 }
 
+async function prompt_updateRole() {
+  let employee_List = await queryAllEmployees();
+  let role_List = await queryAllRoles();
+
+  employee_options = [];
+  employee_id_list = [];
+
+  employee_List.forEach((object) => {
+    employee_options.push(`${object.fname} ${object.lname} (ID: ${object.ID})`);
+    employee_id_list.push(object.ID);
+  });
+
+  inquirer
+    .prompt([
+      {
+        type: "list",
+        message:
+          "\nWho is the employee who is updating their role.\n",
+        pageSize: 12,
+        name: "Employee",
+        choices: employee_options,
+      },
+      {
+        type: "list",
+        message: "\nSelect which new role is associated with the employee.\n",
+        pageSize: 12,
+        name: "newRole",
+        // choices: role_name,
+        choices: role_List.map((roles) => roles.Title),
+      },
+    ])
+    .then(async (input_data) => {
+      let employee_id = employee_id_list[employee_options.indexOf(input_data.Employee)];
+
+      let role_ID = await getRole_ID(input_data.newRole);
+
+      await updateRole(employee_id, role_ID);
+      // reset
+      prompt_MainMenu();
+    });
+}
+
 async function prompt_addEmployee() {
   let role_List = await queryAllRoles();
   let employee_List = await queryAllEmployees();
@@ -357,14 +415,11 @@ async function prompt_addEmployee() {
       },
     ])
     .then(async (input_data) => {
-      let manager_index =
-        employee_id_list[employee_options.indexOf(input_data.Manager)];
+      let manager_index = employee_id_list[employee_options.indexOf(input_data.Manager)];
       input_data.Manager = manager_index;
-      console.log("Manager ID # is: ", manager_index);
 
       let role_ID = await getRole_ID(input_data.Job_Title);
       input_data.Job_Title = role_ID;
-      console.log("Role ID is: ", role_ID);
 
       await createNewEmployee(input_data);
       // reset
@@ -372,7 +427,8 @@ async function prompt_addEmployee() {
     });
 }
 
-// const {queryAllDepartments, createNewRole} = require('./queries');
-// module.exports = {queryAllDepartments, createNewRole};
+// Code to use when modularizing functions instead of this flatfile
+// const {queryAllDepartments, createNewRole} = require('./queries'); //import at top of index.js file
+// module.exports = {queryAllDepartments, createNewRole}; //export at end of modularized js files
 
 prompt_MainMenu();
